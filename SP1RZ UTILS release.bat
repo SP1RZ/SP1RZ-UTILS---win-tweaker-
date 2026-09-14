@@ -1,11 +1,10 @@
 @echo off
 setlocal enabledelayedexpansion
 chcp 65001 >nul
-title SP1RZ UTILS
+title SP1RZ UTILS v1.0
 
 for /F %%a in ('echo prompt $E^|cmd') do set "ESC=%%a"
 set "RED=%ESC%[91m"
-set "GREEN=%ESC%[92m"
 set "WHITE=%ESC%[97m"
 set "RESET=%ESC%[0m"
 
@@ -14,7 +13,7 @@ set "LOGFILE=%~dp0sp1rz_install_log.txt"
 :: Проверка прав администратора и автозапрос через UAC
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
 if '%errorLevel%' NEQ '0' (
-    echo [!] Нужны права администратора. Запрашиваю разрешение...
+    echo %RED%[!]%WHITE% Нужны права администратора. Запрашиваю разрешение...%RESET%
     goto UACPrompt
 ) else (
     goto gotAdmin
@@ -43,7 +42,7 @@ if %BUILD% geq 22000 set "OSVER=11"
 :: Проверка наличия winget
 where winget >nul 2>&1
 if %errorLevel% neq 0 (
-    echo [!] Winget не найден. Установите его из Microsoft Store ^(App Installer^) и запустите скрипт снова.
+    echo %RED%[!]%WHITE% Winget не найден. Установите его из Microsoft Store ^(App Installer^) и запустите скрипт снова.%RESET%
     pause > nul
     exit /b 1
 )
@@ -60,12 +59,16 @@ echo        %RED%//////////////////////////////%RESET%
 echo.
 echo        %WHITE%Обнаружена ОС: Windows %OSVER% (build %BUILD%)%RESET%
 echo.
-echo        [1] Установка программы (winget)
-echo        [2] Активация Windows (KMS)
-echo        [3] Установка Microsoft Office
-echo        [0] Выход
+echo        %RED%[1]%WHITE% Установка программы (winget)%RESET%
+echo        %RED%[2]%WHITE% Активация Windows (KMS)%RESET%
+echo        %RED%[3]%WHITE% Установка Microsoft Office%RESET%
+echo        %RED%[0]%WHITE% Выход%RESET%
 echo.
-set /p choice=Выбери пункт: 
+echo        %RED%------------------------------%RESET%
+echo        %WHITE%Версия программы %RED%1.0%WHITE% by %RED%SP1RZ%RESET%
+echo        %RED%------------------------------%RESET%
+echo.
+set /p choice=%WHITE%Выбери пункт: %RESET%
 
 if "%choice%"=="1" goto install
 if "%choice%"=="2" goto activate
@@ -75,17 +78,19 @@ goto menu
 
 :install
 cls
-echo        %WHITE%Установка программы через winget%RESET%
+echo        %RED%=========================================%RESET%
+echo        %WHITE%     Установка программы через winget    %RESET%
+echo        %RED%=========================================%RESET%
 echo.
-set /p appname=Введите название программы: 
+set /p appname=%WHITE%Введите название программы: %RESET%
 if "%appname%"=="" goto menu
 echo.
-echo Ищу "%appname%"...
+echo %RED%[*]%WHITE% Ищу "%appname%"...%RESET%
 echo.
 winget search "%appname%"
 echo.
-echo Скопируй точный ID нужной программы из колонки Id выше.
-set /p appid=Введите ID (или Enter для отмены): 
+echo %RED%[*]%WHITE% Скопируй точный ID нужной программы из колонки Id выше.%RESET%
+set /p appid=%WHITE%Введите ID (или Enter для отмены): %RESET%
 if "%appid%"=="" goto menu
 echo.
 
@@ -94,21 +99,21 @@ winget list --id %appid% -e --accept-source-agreements >nul 2>&1
 if !errorLevel! equ 0 set "ALREADY_INSTALLED=1"
 
 if "!ALREADY_INSTALLED!"=="1" (
-    echo [=] %appid% уже установлена, пропускаем.
+    echo %RED%[=]%WHITE% %appid% уже установлена, пропускаем.%RESET%
     echo [%date% %time%] %appid% - уже установлена, пропущено >> "%LOGFILE%"
 ) else (
-    echo [*] Установка: %appid% ...
+    echo %RED%[*]%WHITE% Установка: %appid% ...%RESET%
     winget install --id %appid% -e --silent --accept-package-agreements --accept-source-agreements
     if !errorLevel! equ 0 (
-        echo [+] %appid% успешно установлена.
+        echo %WHITE%[+] %appid% успешно установлена.%RESET%
         echo [%date% %time%] %appid% - OK >> "%LOGFILE%"
     ) else (
-        echo [-] Ошибка при установке %appid% ^(код: !errorLevel!^)
+        echo %RED%[-] Ошибка при установке %appid% ^(код: !errorLevel!^)%RESET%
         echo [%date% %time%] %appid% - ОШИБКА, код !errorLevel! >> "%LOGFILE%"
     )
 )
 echo.
-echo Лог сохранён в: %LOGFILE%
+echo %WHITE%Лог сохранён в: %RED%%LOGFILE%%RESET%
 echo.
 pause
 goto menu
@@ -127,26 +132,28 @@ del "%temp%\sp1rz_lic.txt" 2>nul
 
 if "%LICSTAT%"=="1" (
     echo.
-    echo        %GREEN%=========================================%RESET%
-    echo        %GREEN%   Windows уже активирован!            %RESET%
-    echo        %GREEN%=========================================%RESET%
+    echo        %RED%=========================================%RESET%
+    echo        %WHITE%        Windows уже активирован!         %RESET%
+    echo        %RED%=========================================%RESET%
     echo.
     echo        %WHITE%Повторная активация не требуется.%RESET%
-    echo        %WHITE%Для проверки вручную: slmgr /xpr%RESET%
+    echo        %WHITE%Для проверки вручную: %RED%slmgr /xpr%RESET%
     echo.
     pause
     goto menu
 )
 
-echo        %WHITE%Активация Windows через KMS%RESET%
+echo        %RED%=========================================%RESET%
+echo        %WHITE%       Активация Windows через KMS       %RESET%
+echo        %RED%=========================================%RESET%
 echo.
-echo        Выберите версию Windows:
+echo        %WHITE%Выберите версию Windows:%RESET%
 echo.
-echo        [1] Windows 11  (KMS: kms.msguides.com)
-echo        [2] Windows 10  (KMS: kms.digiboy.ir)
-echo        [0] Назад
+echo        %RED%[1]%WHITE% Windows 11  (KMS: kms.msguides.com)%RESET%
+echo        %RED%[2]%WHITE% Windows 10  (KMS: kms.digiboy.ir)%RESET%
+echo        %RED%[0]%WHITE% Назад%RESET%
 echo.
-set /p wver=Выбери пункт: 
+set /p wver=%WHITE%Выбери пункт: %RESET%
 
 if "%wver%"=="1" goto act_win11
 if "%wver%"=="2" goto act_win10
@@ -162,8 +169,8 @@ if not "%OSVER%"=="11" (
     echo.
     echo        %RED%####################################################%RESET%
     echo        %RED%#                                                  #%RESET%
-    echo        %RED%#  Этот пункт для Windows 11.                      #%RESET%
-    echo        %RED%#  У вас обнаружена Windows %OSVER%.                      #%RESET%
+    echo        %RED%#%WHITE%  Этот пункт для Windows 11.                      %RED%#%RESET%
+    echo        %RED%#%WHITE%  У вас обнаружена Windows %OSVER%.                      %RED%#%RESET%
     echo        %RED%#                                                  #%RESET%
     echo        %RED%####################################################%RESET%
     echo.
@@ -178,19 +185,21 @@ set "WNAME="
 set "WINVER=Windows 11"
 set "KSERVER=kms.msguides.com"
 set "KSERVER2=kms8.msguides.com"
-echo        %WHITE%Активация: Windows 11%RESET%
+echo        %RED%=========================================%RESET%
+echo        %WHITE%         Активация: Windows 11           %RESET%
+echo        %RED%=========================================%RESET%
 echo.
-echo        Выберите редакцию:
+echo        %WHITE%Выберите редакцию:%RESET%
 echo.
-echo        [1] Home
-echo        [2] Home N
-echo        [3] Pro
-echo        [4] Pro N
-echo        [5] Education
-echo        [6] Education N
-echo        [0] Назад
+echo        %RED%[1]%WHITE% Home%RESET%
+echo        %RED%[2]%WHITE% Home N%RESET%
+echo        %RED%[3]%WHITE% Pro%RESET%
+echo        %RED%[4]%WHITE% Pro N%RESET%
+echo        %RED%[5]%WHITE% Education%RESET%
+echo        %RED%[6]%WHITE% Education N%RESET%
+echo        %RED%[0]%WHITE% Назад%RESET%
 echo.
-set /p wchoice=Выбери пункт: 
+set /p wchoice=%WHITE%Выбери пункт: %RESET%
 
 if "%wchoice%"=="1" (
     set "WKEY=TX9XD-98N7V-6WMQ6-BX7FG-H8Q99"
@@ -230,8 +239,8 @@ if not "%OSVER%"=="10" (
     echo.
     echo        %RED%####################################################%RESET%
     echo        %RED%#                                                  #%RESET%
-    echo        %RED%#  Этот пункт для Windows 10.                      #%RESET%
-    echo        %RED%#  У вас обнаружена Windows %OSVER%.                      #%RESET%
+    echo        %RED%#%WHITE%  Этот пункт для Windows 10.                      %RED%#%RESET%
+    echo        %RED%#%WHITE%  У вас обнаружена Windows %OSVER%.                      %RED%#%RESET%
     echo        %RED%#                                                  #%RESET%
     echo        %RED%####################################################%RESET%
     echo.
@@ -246,18 +255,20 @@ set "WNAME="
 set "WINVER=Windows 10"
 set "KSERVER=kms.digiboy.ir"
 set "KSERVER2=kms8.msguides.com"
-echo        %WHITE%Активация: Windows 10%RESET%
+echo        %RED%=========================================%RESET%
+echo        %WHITE%         Активация: Windows 10           %RESET%
+echo        %RED%=========================================%RESET%
 echo.
-echo        Выберите редакцию:
+echo        %WHITE%Выберите редакцию:%RESET%
 echo.
-echo        [1] Home
-echo        [2] Home Single Language
-echo        [3] Pro
-echo        [4] Enterprise
-echo        [5] Education
-echo        [0] Назад
+echo        %RED%[1]%WHITE% Home%RESET%
+echo        %RED%[2]%WHITE% Home Single Language%RESET%
+echo        %RED%[3]%WHITE% Pro%RESET%
+echo        %RED%[4]%WHITE% Enterprise%RESET%
+echo        %RED%[5]%WHITE% Education%RESET%
+echo        %RED%[0]%WHITE% Назад%RESET%
 echo.
-set /p wchoice=Выбери пункт: 
+set /p wchoice=%WHITE%Выбери пункт: %RESET%
 
 if "%wchoice%"=="1" (
     set "WKEY=KTNPV-KTRK4-3RRR8-39X6W-W44T3"
@@ -289,50 +300,50 @@ goto do_activate
 :: ============================================================
 :do_activate
 cls
-echo        %WHITE%Активация: %WNAME%%RESET%
-echo        %WHITE%KMS-сервер: %KSERVER%%RESET%
+echo        %WHITE%Активация: %RED%%WNAME%%RESET%
+echo        %WHITE%KMS-сервер: %RED%%KSERVER%%RESET%
 echo.
 
-echo [*] Шаг 1/3 — Установка ключа...
+echo %RED%[*]%WHITE% Шаг 1/3 — Установка ключа...%RESET%
 cscript //nologo %windir%\system32\slmgr.vbs /ipk %WKEY%
 if !errorLevel! neq 0 (
-    echo [-] Не удалось установить ключ ^(код: !errorLevel!^)
+    echo %RED%[-] Не удалось установить ключ (код: !errorLevel!)%RESET%
     echo [%date% %time%] Активация %WNAME% - ошибка установки ключа !errorLevel! >> "%LOGFILE%"
     echo.
     pause
     goto menu
 )
-echo [+] Ключ установлен.
+echo %WHITE%[+] Ключ установлен.%RESET%
 echo.
 
-echo [*] Шаг 2/3 — Установка KMS-сервера...
+echo %RED%[*]%WHITE% Шаг 2/3 — Установка KMS-сервера...%RESET%
 cscript //nologo %windir%\system32\slmgr.vbs /skms %KSERVER% >"%temp%\sp1rz_kms.txt" 2>&1
 type "%temp%\sp1rz_kms.txt"
 findstr /i /c:"error" /c:"ошибка" /c:"не удалось" "%temp%\sp1rz_kms.txt" >nul
 if !errorLevel! neq 0 (
-    echo [+] KMS-сервер: %KSERVER%
+    echo %WHITE%[+] KMS-сервер: %RED%%KSERVER%%RESET%
 ) else (
-    echo [!] %KSERVER% не сработал, пробую %KSERVER2% ...
+    echo %RED%[!] %KSERVER% не сработал, пробую %KSERVER2% ...%RESET%
     cscript //nologo %windir%\system32\slmgr.vbs /skms %KSERVER2%
-    echo [+] KMS-сервер: %KSERVER2%
+    echo %WHITE%[+] KMS-сервер: %RED%%KSERVER2%%RESET%
 )
 if exist "%temp%\sp1rz_kms.txt" del "%temp%\sp1rz_kms.txt" 2>nul
 echo.
 
-echo [*] Шаг 3/3 — Активация...
+echo %RED%[*]%WHITE% Шаг 3/3 — Активация...%RESET%
 cscript //nologo %windir%\system32\slmgr.vbs /ato
 if !errorLevel! equ 0 (
     echo.
-    echo [+] Команда активации выполнена.
+    echo %WHITE%[+] Команда активации выполнена.%RESET%
     echo [%date% %time%] Активация %WNAME% ^(%WKEY%^) через %KSERVER% - команда /ato выполнена >> "%LOGFILE%"
 ) else (
     echo.
-    echo [-] Ошибка активации ^(код: !errorLevel!^)
+    echo %RED%[-] Ошибка активации (код: !errorLevel!)%RESET%
     echo [%date% %time%] Активация %WNAME% ^(%WKEY%^) - ошибка /ato код !errorLevel! >> "%LOGFILE%"
 )
 echo.
-echo Для проверки статуса: slmgr /xpr
-echo Лог: %LOGFILE%
+echo %WHITE%Для проверки статуса: %RED%slmgr /xpr%RESET%
+echo %WHITE%Лог: %RED%%LOGFILE%%RESET%
 echo.
 pause
 set "WKEY="
@@ -347,16 +358,18 @@ goto menu
 :: ============================================================
 :util3
 cls
-echo        %WHITE%Установка Microsoft Office%RESET%
+echo        %RED%=========================================%RESET%
+echo        %WHITE%       Установка Microsoft Office        %RESET%
+echo        %RED%=========================================%RESET%
 echo.
-echo        Выберите вариант:
+echo        %WHITE%Выберите вариант:%RESET%
 echo.
-echo        [1] Microsoft 365 Apps for enterprise
-echo        [2] Office LTSC Professional Plus 2021
-echo        [3] Office Professional Plus 2019
-echo        [0] Назад
+echo        %RED%[1]%WHITE% Microsoft 365 Apps for enterprise%RESET%
+echo        %RED%[2]%WHITE% Office LTSC Professional Plus 2021%RESET%
+echo        %RED%[3]%WHITE% Office Professional Plus 2019%RESET%
+echo        %RED%[0]%WHITE% Назад%RESET%
 echo.
-set /p officechoice=Выбери пункт: 
+set /p officechoice=%WHITE%Выбери пункт: %RESET%
 
 set "OFFPROD="
 set "OFFNAME="
@@ -380,14 +393,14 @@ if "%officechoice%"=="0" goto menu
 if not defined OFFPROD goto util3
 
 echo.
-echo [*] Установка: %OFFNAME%
-echo     Это может занять 10-30 минут, дождитесь завершения.
+echo %RED%[*]%WHITE% Установка: %OFFNAME%%RESET%
+echo      %WHITE%Это может занять 10-30 минут, дождитесь завершения.%RESET%
 echo.
 
 :: --- Проверка: не установлен ли уже Office ---
 reg query "HKLM\SOFTWARE\Microsoft\Office\ClickToRun\Configuration" /v ProductReleaseIds >nul 2>&1
 if !errorLevel! equ 0 (
-    echo [=] Office уже установлен в системе, пропускаем.
+    echo %RED%[=]%WHITE% Office уже установлен в системе, пропускаем.%RESET%
     echo [%date% %time%] %OFFNAME% - уже установлен, пропущено >> "%LOGFILE%"
     echo.
     pause
@@ -400,11 +413,11 @@ if exist "%ODTDIR%" rmdir /s /q "%ODTDIR%"
 mkdir "%ODTDIR%"
 
 :: --- Скачивание C2R bootstrapper ---
-echo [*] Скачиваю установщик Office ^(setup.exe^)...
+echo %RED%[*]%WHITE% Скачиваю установщик Office ^(setup.exe^)...%RESET%
 powershell -NoProfile -Command "$ProgressPreference='SilentlyContinue'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; try { Invoke-WebRequest -Uri 'https://officecdn.microsoft.com/pr/wsus/setup.exe' -OutFile '%ODTDIR%\setup.exe' -UseBasicParsing } catch { exit 1 }"
 
 if not exist "%ODTDIR%\setup.exe" (
-    echo [-] Не удалось скачать установщик.
+    echo %RED%[-] Не удалось скачать установщик.%RESET%
     echo [%date% %time%] %OFFNAME% - ошибка скачивания >> "%LOGFILE%"
     rmdir /s /q "%ODTDIR%" 2>nul
     echo.
@@ -415,7 +428,7 @@ if not exist "%ODTDIR%\setup.exe" (
 :: --- Проверка размера ---
 for %%F in ("%ODTDIR%\setup.exe") do set "ODTSIZE=%%~zF"
 if !ODTSIZE! LSS 3000000 (
-    echo [-] Файл слишком мал ^(!ODTSIZE! байт^), вероятно ошибка.
+    echo %RED%[-] Файл слишком мал ^(!ODTSIZE! байт^), вероятно ошибка.%RESET%
     echo [%date% %time%] %OFFNAME% - setup.exe повреждён ^(!ODTSIZE!^) >> "%LOGFILE%"
     rmdir /s /q "%ODTDIR%" 2>nul
     echo.
@@ -426,7 +439,7 @@ if !ODTSIZE! LSS 3000000 (
 :: --- Проверка MZ-заголовка (это .exe, а не HTML) ---
 powershell -NoProfile -Command "$f=[IO.File]::ReadAllBytes('%ODTDIR%\setup.exe'); if ($f[0] -ne 77 -or $f[1] -ne 90) { exit 1 }"
 if !errorLevel! neq 0 (
-    echo [-] Скачался не EXE-файл ^(HTML/редирект^). Прерываю.
+    echo %RED%[-] Скачался не EXE-файл ^(HTML/редирект^). Прерываю.%RESET%
     rmdir /s /q "%ODTDIR%" 2>nul
     echo.
     pause
@@ -436,44 +449,44 @@ if !errorLevel! neq 0 (
 :: --- Снимаем MOTW (Mark of the Web) ---
 powershell -NoProfile -Command "Unblock-File -Path '%ODTDIR%\setup.exe' -ErrorAction SilentlyContinue" >nul 2>&1
 
-echo [+] Установщик готов ^(!ODTSIZE! байт^).
+echo %WHITE%[+] Установщик готов ^(!ODTSIZE! байт^).%RESET%
 echo.
 
 :: --- Создание configuration.xml ---
-echo [*] Готовлю конфигурацию ^(канал: %OFFCHANNEL%^)...
+echo %RED%[*]%WHITE% Готовлю конфигурацию ^(канал: %OFFCHANNEL%^)...%RESET%
 (
 echo ^<Configuration^>
-echo   ^<Add OfficeClientEdition="64" Channel="%OFFCHANNEL%"^>
-echo     ^<Product ID="%OFFPROD%"^>
-echo       ^<Language ID="ru-ru" /^>
-echo       ^<Language ID="en-us" /^>
-echo     ^</Product^>
-echo   ^</Add^>
-echo   ^<Property Name="AUTOACTIVATE" Value="0" /^>
-echo   ^<Property Name="FORCEAPPSHUTDOWN" Value="TRUE" /^>
-echo   ^<Display Level="Full" AcceptEULA="TRUE" /^>
-echo   ^<Logging Level="Standard" Path="%ODTDIR%\log" /^>
+echo    ^<Add OfficeClientEdition="64" Channel="%OFFCHANNEL%"^>
+echo      ^<Product ID="%OFFPROD%"^>
+echo        ^<Language ID="ru-ru" /^>
+echo        ^<Language ID="en-us" /^>
+echo      ^</Product^>
+echo    ^</Add^>
+echo    ^<Property Name="AUTOACTIVATE" Value="0" /^>
+echo    ^<Property Name="FORCEAPPSHUTDOWN" Value="TRUE" /^>
+echo    ^<Display Level="Full" AcceptEULA="TRUE" /^>
+echo    ^<Logging Level="Standard" Path="%ODTDIR%\log" /^>
 echo ^</Configuration^>
 ) > "%ODTDIR%\configuration.xml"
 
 :: --- Запуск установки ---
-echo [*] Запускаю установщик Office...
+echo %RED%[*]%WHITE% Запускаю установщик Office...%RESET%
 echo.
 "%ODTDIR%\setup.exe" /configure "%ODTDIR%\configuration.xml"
 
 if !errorLevel! equ 0 (
     echo.
-    echo [+] %OFFNAME% успешно установлен.
+    echo %WHITE%[+] %OFFNAME% успешно установлен.%RESET%
     echo [%date% %time%] %OFFNAME% - OK >> "%LOGFILE%"
 ) else (
     echo.
-    echo [-] Установка завершилась с кодом !errorLevel!
-    echo     Подробный лог: %ODTDIR%\log
+    echo %RED%[-] Установка завершилась с кодом !errorLevel!%RESET%
+    echo      %WHITE%Подробный лог: %RED%%ODTDIR%\log%RESET%
     echo [%date% %time%] %OFFNAME% - ошибка, код !errorLevel! >> "%LOGFILE%"
 )
 
 echo.
-echo Лог скрипта: %LOGFILE%
+echo %WHITE%Лог скрипта: %RED%%LOGFILE%%RESET%
 echo.
 pause
 set "OFFPROD="
